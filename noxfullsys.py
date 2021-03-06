@@ -4,13 +4,26 @@
 import smbus
 import time
 import math
-from Adafruit_LED_Backpack import Matrix8x8
-import Adafruit_CharLCD as LCD
+import board
+import busio
+from adafruit_ht16k33 import matrix
+import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
 
-#Display and Keypad setup
+# Modify this if you have a different sized Character LCD
+lcd_columns = 16
+lcd_rows = 2
 
-# Initialize the LCD using the pins
-lcd = LCD.Adafruit_CharLCDPlate()
+# Initialise I2C bus.
+i2c = busio.I2C(board.SCL, board.SDA)
+
+# Initialise the LCD class
+lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
+
+lcd.clear()
+
+# Set LCD color to blue
+lcd.color = [0, 100, 0]
+time.sleep(1)
 
 # create some custom characters
 lcd.create_char(1, [2, 3, 2, 2, 14, 30, 12, 0])
@@ -21,19 +34,32 @@ lcd.create_char(5, [8, 12, 10, 9, 10, 12, 8, 0])
 lcd.create_char(6, [2, 6, 10, 18, 10, 6, 2, 0])
 lcd.create_char(7, [31, 17, 21, 21, 21, 21, 17, 31])
 lcd.clear()
-lcd.message('RPI NOX game\nWelcome')
+lcd.message = "RPI NOX game\nWelcome"
 
+
+
+# creates a 8x8 matrix:
+matrix = matrix.Matrix8x8(i2c)
+
+# edges of an 3x3 matrix
+col_max = 3
+row_max = 3
+
+# Clear the matrix.
+matrix.fill(0)
+col = 0
+row = 0
 
 #LED setup
 # Create display instance on default I2C address (0x70) and bus number.
-display = Matrix8x8.Matrix8x8(address=0x70, busnum=1)
+#display = Matrix8x8.Matrix8x8(address=0x70, busnum=1)
 # check using I2cdetect -y 1  to make sure the address is 70, if not edit the line above to change it
 # the correct address
 
 # Initialize the display. Must be called once before using the display.
-display.begin()
-display.clear()
-display.write_display()
+#display.begin()
+#display.clear()
+#display.write_display()
 # MCP23017  setup
 # this program scans both registers one device, giving 2 x 8 = 16 inputs, only 9 of these are used in the NOX program 
 #bus = smbus.SMBus(0)  # Rev 1 Pi uses 0
@@ -59,7 +85,7 @@ bus.write_byte_data(i2cadd,IODIRB,0xFF)
 # Set pull up on GPB pins .ie from default of 0 to 11111111
 bus.write_byte_data(i2cadd,GPPUB,0xFF)
 
-print "starting"
+print ("starting")
 # now look for a change
 
 # Loop until user presses CTRL-C
@@ -78,21 +104,28 @@ while True:
       y =  (2+w)%3   # cathodes number start 0
       
       if dirx == "Close":
-        display.set_pixel(x, y, 1)  # switch on the LED
+        matrix[x, y]=2 # switch on the LED
         lcd.clear()
         #lcd.message('Hello\nworld!')
-        lcd.message('Square: \n')
-        lcd.message(str(w))
-                  
+        lcd.message = "Square: \n" + str(w)
+        #lcd.message = str(w)
       if dirx == "Open":
-        display.set_pixel(x, y, 0)  # switch off the LED
+        matrix[x, y]=0 # switch off the LED
         lcd.clear()
         
-      display.write_display()
-      print "square", w, " Reed Switch " , dirx    # chcol[(w+2)%3], (int((w-1)/3))+1
+      #display.write_display()
+      print ("square", w, " Reed Switch " , dirx )   # chcol[(w+2)%3], (int((w-1)/3))+1
       
       mbrd[l]=a  # update the current state of the board
-      time.sleep(0.1)
+      time.sleep(1)
+      
+      # Turn off LCD backlights and clear text
+      lcd.color = [0, 0, 0]
+      
+# Clear the display buffer.
+lcd.clear()
 
+#Clear Matrix
+matrix.fill(0)
 
 

@@ -41,10 +41,7 @@ while True:
       if a > mbrd[l] : dirx = "Open"  # if the number gets bigger a 0 has changed to a 1
       y = math.frexp(c)[1]  # calculates integer part of log base 2, which is binary bit position
       w=y+l*8
-      print "square", w, " Reed Switch " , dirx    # chcol[(w+2)%3], (int((w-1)/3))+1
+      print ("square", w, " Reed Switch " , dirx)    # chcol[(w+2)%3], (int((w-1)/3))+1
       
       mbrd[l]=a  # update the current state of the board
-      time.sleep(0.1)
-
-
-
+      time.sleep(0.5)

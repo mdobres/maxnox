@@ -4,18 +4,35 @@
 import smbus
 import time
 import math
-from Adafruit_LED_Backpack import Matrix8x8
+import board
+import busio
+from adafruit_ht16k33 import matrix
+
+# Create the I2C interface.
+i2c = busio.I2C(board.SCL, board.SDA)
+
+# creates a 8x8 matrix:
+matrix = matrix.Matrix8x8(i2c)
+
+# edges of an 3x3 matrix
+col_max = 3
+row_max = 3
+
+# Clear the matrix.
+matrix.fill(0)
+col = 0
+row = 0
 
 #LED setup
 # Create display instance on default I2C address (0x70) and bus number.
-display = Matrix8x8.Matrix8x8(address=0x70, busnum=1)
+#display = Matrix8x8.Matrix8x8(address=0x70, busnum=1)
 # check using I2cdetect -y 1  to make sure the address is 70, if not edit the line above to change it
 # the correct address
 
 # Initialize the display. Must be called once before using the display.
-display.begin()
-display.clear()
-display.write_display()
+#display.begin()
+#display.clear()
+#display.write_display()
 # MCP23017  setup
 # this program scans both registers one device, giving 2 x 8 = 16 inputs, only 9 of these are used in the NOX program 
 #bus = smbus.SMBus(0)  # Rev 1 Pi uses 0
@@ -41,7 +58,7 @@ bus.write_byte_data(i2cadd,IODIRB,0xFF)
 # Set pull up on GPB pins .ie from default of 0 to 11111111
 bus.write_byte_data(i2cadd,GPPUB,0xFF)
 
-print "starting"
+print ("starting")
 # now look for a change
 
 # Loop until user presses CTRL-C
@@ -59,14 +76,17 @@ while True:
       x =int((w-1)/3)+1   # anodes numbers starts 1
       y =  (2+w)%3   # cathodes number start 0
       
-      if dirx == "Close":   display.set_pixel(x, y, 1)  # switch on the LED
-      if dirx == "Open":   display.set_pixel(x, y, 0)  # switch off the LED
+      if dirx == "Close":   matrix[x, y]=2 # switch on the LED
+      if dirx == "Open":   matrix[x, y]=0 # switch off the LED
         
-      display.write_display()
-      print "square", w, " Reed Switch " , dirx    # chcol[(w+2)%3], (int((w-1)/3))+1
+      #display.write_display()
+      print ("square", w, " Reed Switch " , dirx )   # chcol[(w+2)%3], (int((w-1)/3))+1
       
       mbrd[l]=a  # update the current state of the board
       time.sleep(0.1)
 
 
+# Clear the display buffer.
+
+matrix.fill(0)
 
